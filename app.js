@@ -1,6 +1,6 @@
 
-const SUPABASE_URL = "PASTE_YOUR_SUPABASE_PROJECT_URL";
-const SUPABASE_PUBLISHABLE_KEY = "PASTE_YOUR_SUPABASE_PUBLISHABLE_KEY";
+const SUPABASE_URL = "https://phvuffbriqwimzyrafia.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_iRbBrraZX6w7MLmb_EDUuw_4z8DnSF4";
 
 const $ = (id) => document.getElementById(id);
 
@@ -12,7 +12,9 @@ const state = {
   scanning: false,
   stream: null,
   detector: null,
-  raf: null
+  raf: null,
+  authListener: null,
+  signingIn: false
 };
 
 const titles = {
@@ -25,13 +27,18 @@ const titles = {
 
 function toast(message) {
   const el = $("toast");
-  if (!el) return;
+  if (!el) {
+    console.log(message);
+    return;
+  }
+
   el.textContent = message;
   el.classList.add("show");
+
   clearTimeout(window.__toastTimer);
-  window.__toastTimer = setTimeout(
-    () => el.classList.remove("show"), 3500
-  );
+  window.__toastTimer = setTimeout(() => {
+    el.classList.remove("show");
+  }, 4500);
 }
 
 function showView(view) {
@@ -40,20 +47,21 @@ function showView(view) {
     return;
   }
 
-  document.querySelectorAll(".view").forEach(v =>
-    v.classList.add("hidden")
-  );
+  document.querySelectorAll(".view").forEach((v) => {
+    v.classList.add("hidden");
+  });
 
   const target = $("view-" + view);
   if (target) target.classList.remove("hidden");
 
-  document.querySelectorAll("[data-view]").forEach(b =>
-    b.classList.toggle("active", b.dataset.view === view)
-  );
+  document.querySelectorAll("[data-view]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.view === view);
+  });
 
-  const t = titles[view] || titles.dashboard;
-  $("pageEyebrow").textContent = t[0];
-  $("pageTitle").textContent = t[1];
+  const title = titles[view] || titles.dashboard;
+
+  if ($("pageEyebrow")) $("pageEyebrow").textContent = title[0];
+  if ($("pageTitle")) $("pageTitle").textContent = title[1];
 
   if (view !== "scanner") stopScanner();
 }
@@ -63,35 +71,46 @@ function enterApp(profile, user) {
   state.name = profile.full_name || user.email || "Coordinator";
   state.role = profile.role;
 
-  $("profileName").textContent = state.name;
-  $("profileRole").textContent =
-    state.role === "admin" ? "Administrator" : "Coordinator";
+  if ($("profileName")) {
+    $("profileName").textContent = state.name;
 
-  const initials = state.name
-    .split(/\s+/)
-    .map(x => x[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+    const initials = state.name
+      .split(/\s+/)
+      .map((part) => part[0] || "")
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
-  $("profileName").previousElementSibling.textContent =
-    initials || "RR";
+    if ($("profileName").previousElementSibling) {
+      $("profileName").previousElementSibling.textContent =
+        initials || "RR";
+    }
+  }
 
-  document.querySelectorAll(".admin-only").forEach(el =>
-    el.classList.toggle("hidden", state.role !== "admin")
-  );
+  if ($("profileRole")) {
+    $("profileRole").textContent =
+      state.role === "admin" ? "Administrator" : "Coordinator";
+  }
 
-  $("loginScreen").classList.add("hidden");
-  $("appShell").classList.remove("hidden");
+  document.querySelectorAll(".admin-only").forEach((element) => {
+    element.classList.toggle("hidden", state.role !== "admin");
+  });
+
+  $("loginScreen")?.classList.add("hidden");
+  $("appShell")?.classList.remove("hidden");
+
   showView("dashboard");
 }
 
 function showLogin() {
   stopScanner();
+
   state.user = null;
+  state.name = "Coordinator";
   state.role = "coordinator";
-  $("appShell").classList.add("hidden");
-  $("loginScreen").classList.remove("hidden");
+
+  $("appShell")?.classList.add("hidden");
+  $("loginScreen")?.classList.remove("hidden");
 }
 
 async function loadSupabaseLibrary() {
@@ -99,13 +118,21 @@ async function loadSupabaseLibrary() {
 
   await new Promise((resolve, reject) => {
     const script = document.createElement("script");
+
     script.src =
       "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+
     script.onload = resolve;
-    script.onerror = () =>
-      reject(new Error("Could not load the Supabase library."));
+    script.onerror = () => {
+      reject(new Error("Could not load Supabase. Check your internet connection."));
+    };
+
     document.head.appendChild(script);
   });
+
+  if (!window.supabase?.createClient) {
+    throw new Error("Supabase library loaded incorrectly. Refresh the page.");
+  }
 }
 
 async function loadProfile(user) {
@@ -115,17 +142,21 @@ async function loadProfile(user) {
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    throw new Error(
+      error.code === "PGRST116"
+        ? "Could not find your coordinator profile."
+        : "Could not verify your profile: " + error.message
+    );
+  }
 
   if (!data || data.active !== true) {
-    await state.supabase.auth.signOut();
     throw new Error(
       "Your account has no active coordinator approval. Contact the administrator."
     );
   }
 
   if (!["admin", "coordinator"].includes(data.role)) {
-    await state.supabase.auth.signOut();
     throw new Error("Your account role is not authorized.");
   }
 
@@ -138,14 +169,6 @@ async function openAuthenticatedSession(user) {
 }
 
 async function initializeApp() {
-  if (
-    SUPABASE_URL.includes("PASTE_") ||
-    SUPABASE_PUBLISHABLE_KEY.includes("PASTE_")
-  ) {
-    toast("Add your Supabase URL and publishable key in app.js.");
-    return;
-  }
-
   try {
     await loadSupabaseLibrary();
 
@@ -161,8 +184,7 @@ async function initializeApp() {
       }
     );
 
-    const { data, error } =
-      await state.supabase.auth.getSession();
+    const { data, error } = await state.supabase.auth.getSession();
 
     if (error) throw error;
 
@@ -171,51 +193,66 @@ async function initializeApp() {
         await openAuthenticatedSession(data.session.user);
       } catch (err) {
         showLogin();
-        toast(err.message || "Account access could not be verified.");
+        toast(err.message || "Your account could not be verified.");
       }
     }
 
-    state.supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
-        showLogin();
-      } else if (event === "SIGNED_IN" && session?.user) {
-        // Defer database access until after the auth callback completes.
-        setTimeout(async () => {
-          try {
-            await openAuthenticatedSession(session.user);
-          } catch (err) {
-            showLogin();
-            toast(err.message || "Account approval could not be verified.");
-          }
-        }, 0);
+    const { data: listener } = state.supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "SIGNED_OUT") {
+          showLogin();
+          return;
+        }
+
+        if (event === "SIGNED_IN" && session?.user) {
+          setTimeout(async () => {
+            if (state.signingIn) return;
+
+            try {
+              await openAuthenticatedSession(session.user);
+            } catch (err) {
+              await state.supabase.auth.signOut();
+              showLogin();
+              toast(err.message || "Account approval could not be verified.");
+            }
+          }, 0);
+        }
       }
-    });
+    );
+
+    state.authListener = listener;
   } catch (err) {
-    toast(err.message || "Supabase could not be initialized.");
+    console.error("Initialization error:", err);
+    toast(err.message || "The app could not connect to Supabase.");
   }
 }
 
-$("loginForm").addEventListener("submit", async e => {
-  e.preventDefault();
+$("loginForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
   if (!state.supabase) {
-    toast("Supabase is not ready. Check your configuration and reload.");
+    toast("Supabase is not ready. Refresh and try again.");
     return;
   }
 
-  const email = $("account").value.trim();
-  const password = $("password").value;
+  if (state.signingIn) return;
+
+  const email = $("account")?.value.trim();
+  const password = $("password")?.value;
 
   if (!email || !password) {
-    toast("Enter your email and password.");
+    toast("Enter your email address and password.");
     return;
   }
 
-  const submitButton = $("loginForm").querySelector(
-    'button[type="submit"]'
-  );
-  submitButton.disabled = true;
-  submitButton.textContent = "Signing in...";
+  const button = $("loginForm").querySelector('button[type="submit"]');
+
+  state.signingIn = true;
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Signing in...";
+  }
 
   try {
     const { data, error } = await state.supabase.auth.signInWithPassword({
@@ -225,17 +262,27 @@ $("loginForm").addEventListener("submit", async e => {
 
     if (error) throw error;
 
+    if (!data.user) {
+      throw new Error("Sign-in succeeded but no user was returned.");
+    }
+
     await openAuthenticatedSession(data.user);
+
     $("password").value = "";
   } catch (err) {
-    toast(err.message || "Sign-in failed. Check your credentials.");
+    console.error("Sign-in error:", err);
+    toast(err.message || "Sign-in failed. Check your email and password.");
   } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = "Sign in securely";
+    state.signingIn = false;
+
+    if (button) {
+      button.disabled = false;
+      button.textContent = "Sign in securely";
+    }
   }
 });
 
-$("logoutBtn").addEventListener("click", async () => {
+$("logoutBtn")?.addEventListener("click", async () => {
   stopScanner();
 
   if (!state.supabase) {
@@ -246,64 +293,68 @@ $("logoutBtn").addEventListener("click", async () => {
   const { error } = await state.supabase.auth.signOut();
 
   if (error) {
-    toast("Sign-out failed. Please try again.");
+    toast("Sign-out failed: " + error.message);
     return;
   }
 
-  $("password").value = "";
+  if ($("password")) $("password").value = "";
+
   showLogin();
   toast("You have signed out.");
 });
 
-document.querySelectorAll("[data-view]").forEach(b =>
-  b.addEventListener("click", () => showView(b.dataset.view))
-);
+document.querySelectorAll("[data-view]").forEach((button) => {
+  button.addEventListener("click", () => showView(button.dataset.view));
+});
 
-document.querySelectorAll("[data-go]").forEach(b =>
-  b.addEventListener("click", () => showView(b.dataset.go))
-);
+document.querySelectorAll("[data-go]").forEach((button) => {
+  button.addEventListener("click", () => showView(button.dataset.go));
+});
 
-$("profileMenu").addEventListener("click", () =>
-  toast("Account settings are not connected yet.")
-);
+$("profileMenu")?.addEventListener("click", () => {
+  toast("Account settings are not connected yet.");
+});
 
-$("refreshTrips").addEventListener("click", () =>
-  toast("Trip data API is not connected yet.")
-);
+$("refreshTrips")?.addEventListener("click", () => {
+  toast("Trip data API is not connected yet.");
+});
 
-$("newChatBtn").addEventListener("click", () =>
-  toast("Private messaging API is not connected yet.")
-);
+$("newChatBtn")?.addEventListener("click", () => {
+  toast("Private messaging API is not connected yet.");
+});
 
-$("startConversation").addEventListener("click", () =>
-  toast("Private messaging API is not connected yet.")
-);
+$("startConversation")?.addEventListener("click", () => {
+  toast("Private messaging API is not connected yet.");
+});
 
-$("inviteBtn").addEventListener("click", () => {
+$("inviteBtn")?.addEventListener("click", () => {
   if (state.role !== "admin") {
     toast("Administrator access is required.");
     return;
   }
+
   toast("Secure coordinator management is not connected yet.");
 });
 
-$("verifyTicket").addEventListener("click", () => {
-  const code = $("ticketCode").value.trim();
-  const box = $("scanResult");
+$("verifyTicket")?.addEventListener("click", () => {
+  const code = $("ticketCode")?.value.trim();
+  const result = $("scanResult");
+
+  if (!result) return;
 
   if (!code) {
-    box.className = "result-box warn";
-    box.textContent = "Enter a ticket number or scan a QR code first.";
+    result.className = "result-box warn";
+    result.textContent = "Enter a ticket number or scan a QR code first.";
     return;
   }
 
-  box.className = "result-box warn";
-  box.textContent =
-    "Not verified. The secure ticket-validation API is not connected. No check-in was recorded.";
+  result.className = "result-box warn";
+  result.textContent =
+    "Not verified. Secure ticket validation is not connected. No check-in was recorded.";
 });
 
-$("startScan").addEventListener("click", startScanner);
-$("stopScan").addEventListener("click", stopScanner);
+$("startScan")?.addEventListener("click", startScanner);
+$("stopScan")?.addEventListener("click", stopScanner);
 
 async function startScanner() {
   if (!navigator.mediaDevices?.getUserMedia) {
@@ -312,14 +363,12 @@ async function startScanner() {
   }
 
   if (!("BarcodeDetector" in window)) {
-    toast("QR detection is not supported by this browser.");
+    toast("QR detection is not supported by this browser. Try a compatible browser.");
     return;
   }
 
   try {
-    state.detector = new BarcodeDetector({
-      formats: ["qr_code"]
-    });
+    state.detector = new BarcodeDetector({ formats: ["qr_code"] });
 
     state.stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "environment" },
@@ -330,14 +379,19 @@ async function startScanner() {
     await $("cameraVideo").play();
 
     state.scanning = true;
-    $("cameraPlaceholder").classList.add("hidden");
-    document.querySelector(".scan-corners").style.display = "block";
-    $("startScan").disabled = true;
-    $("stopScan").disabled = false;
+
+    $("cameraPlaceholder")?.classList.add("hidden");
+
+    const corners = document.querySelector(".scan-corners");
+    if (corners) corners.style.display = "block";
+
+    if ($("startScan")) $("startScan").disabled = true;
+    if ($("stopScan")) $("stopScan").disabled = false;
 
     scanFrame();
   } catch (err) {
-    toast("Could not start camera. Check camera permission.");
+    console.error("Camera error:", err);
+    toast("Could not start camera. Check browser camera permissions.");
     stopScanner();
   }
 }
@@ -346,20 +400,26 @@ async function scanFrame() {
   if (!state.scanning) return;
 
   try {
-    const codes = await state.detector.detect($("cameraVideo"));
+    const video = $("cameraVideo");
 
-    if (codes.length && codes[0].rawValue) {
-      $("ticketCode").value = codes[0].rawValue;
+    if (video?.readyState >= 2) {
+      const codes = await state.detector.detect(video);
 
-      $("scanResult").className = "result-box warn";
-      $("scanResult").textContent =
-        "QR captured. Server verification is still required; no check-in was recorded.";
+      if (codes.length && codes[0].rawValue) {
+        $("ticketCode").value = codes[0].rawValue;
 
-      toast("QR captured.");
-      stopScanner();
-      return;
+        $("scanResult").className = "result-box warn";
+        $("scanResult").textContent =
+          "QR captured. Server verification is still required; no check-in was recorded.";
+
+        toast("QR captured. Verify it with the secure backend when connected.");
+        stopScanner();
+        return;
+      }
     }
-  } catch (_) {}
+  } catch (err) {
+    console.warn("QR scan attempt failed:", err);
+  }
 
   if (state.scanning) {
     state.raf = requestAnimationFrame(scanFrame);
@@ -373,7 +433,7 @@ function stopScanner() {
   state.raf = null;
 
   if (state.stream) {
-    state.stream.getTracks().forEach(track => track.stop());
+    state.stream.getTracks().forEach((track) => track.stop());
   }
 
   state.stream = null;
@@ -381,8 +441,7 @@ function stopScanner() {
   const video = $("cameraVideo");
   if (video) video.srcObject = null;
 
-  const placeholder = $("cameraPlaceholder");
-  if (placeholder) placeholder.classList.remove("hidden");
+  $("cameraPlaceholder")?.classList.remove("hidden");
 
   const corners = document.querySelector(".scan-corners");
   if (corners) corners.style.display = "none";
@@ -391,12 +450,13 @@ function stopScanner() {
   if ($("stopScan")) $("stopScan").disabled = true;
 }
 
-if ("serviceWorker" in navigator &&
-    location.protocol.startsWith("http")) {
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    navigator.serviceWorker.register("./sw.js").catch((err) => {
+      console.warn("Service worker registration failed:", err);
+    });
   });
 }
 
 initializeApp();
-                    
+  
