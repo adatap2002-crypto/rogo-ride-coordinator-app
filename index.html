@@ -1,274 +1,182 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#103c32">
-  <meta name="description" content="Private ROGO RIDE operations app for approved coordinators and administrators.">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10251d">
+  <meta name="description" content="ROGO RIDE Coordinator and Administrator Portal">
+
+  <title>ROGO RIDE | Operations Portal</title>
+
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
-  <title>ROGO RIDE | Coordinator</title>
 </head>
+
 <body>
-  <div id="loginScreen" class="login-wrap">
-    <div class="brand-mark">R</div>
-    <p class="eyebrow">OPERATIONS PORTAL</p>
-    <h1>ROGO RIDE</h1>
-    <p class="muted">Coordinator &amp; administrator access</p>
+  <noscript>
+    <p>This application requires JavaScript. Please enable JavaScript and reload.</p>
+  </noscript>
 
-    <form id="loginForm" class="panel login-panel">
-      <label for="account">Email address</label>
-      <input id="account" type="email" autocomplete="username"
-        placeholder="Enter your registered email" required>
+  <div id="loginScreen">
+    <div class="login-container">
+      <div class="brand-mark">R</div>
 
-      <label for="password">Password</label>
-      <input id="password" type="password" autocomplete="current-password"
-        placeholder="Enter password" required>
+      <p class="eyebrow">OPERATIONS PORTAL</p>
+      <h1>ROGO RIDE</h1>
+      <p>Coordinator &amp; administrator access</p>
 
-      <button class="primary full" type="submit">Sign in securely</button>
-      <p class="tiny muted">Sign in with your approved ROGO RIDE account.</p>
-    </form>
+      <div id="loginError" role="alert" aria-live="polite" hidden></div>
 
-    <p class="tiny muted">Access is restricted to approved team members.</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="account">Email address</label>
+          <input
+            id="account"
+            name="account"
+            type="email"
+            autocomplete="username"
+            placeholder="Enter your email address"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Enter your password"
+            required
+          >
+        </div>
+
+        <button id="loginButton" type="submit">
+          Sign in securely
+        </button>
+      </form>
+
+      <p class="login-note">
+        Sign in with your approved ROGO RIDE account.
+      </p>
+
+      <p class="security-note">
+        Access is restricted to approved team members.
+      </p>
+    </div>
   </div>
 
-  <div id="appShell" class="app-shell hidden">
-    <aside class="sidebar">
-      <div class="side-brand">
-        <div class="brand-mark small">R</div>
-        <div><strong>ROGO RIDE</strong><span>Operations</span></div>
-      </div>
-
-      <nav id="sideNav">
-        <button class="nav-item active" data-view="dashboard">▦ <span>Dashboard</span></button>
-        <button class="nav-item" data-view="trips">↗ <span>My trips</span></button>
-        <button class="nav-item" data-view="scanner">▣ <span>QR scanner</span></button>
-        <button class="nav-item" data-view="chats">✉ <span>Team chats</span><span class="nav-dot"></span></button>
-        <button class="nav-item admin-only" data-view="team">♙ <span>Manage team</span></button>
-      </nav>
-
-      <div class="side-bottom">
-        <div class="online-dot"></div>
-        <span>Coordinator workspace</span>
-        <button id="logoutBtn" class="logout">Sign out</button>
-      </div>
-    </aside>
-
-    <main class="main">
-      <header class="topbar">
+  <div id="appShell" hidden>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
         <div>
-          <p class="eyebrow" id="pageEyebrow">OPERATIONS OVERVIEW</p>
-          <h2 id="pageTitle">Dashboard</h2>
+          <strong>ROGO RIDE</strong>
+          <small>Operations Portal</small>
         </div>
-        <div class="profile">
-          <div class="avatar">AD</div>
-          <div>
-            <strong id="profileName">Coordinator</strong>
-            <span id="profileRole">Team member</span>
-          </div>
-          <button id="profileMenu" class="icon-btn" aria-label="Profile menu">⋮</button>
-        </div>
-      </header>
+      </div>
 
-      <section id="view-dashboard" class="view">
-        <div class="welcome-card">
-          <div>
-            <p class="eyebrow light">ROGO RIDE OPERATIONS</p>
-            <h1>Welcome back.</h1>
-            <p>Everything you need to coordinate a smooth trip.</p>
-          </div>
-          <div class="welcome-symbol">RR</div>
-        </div>
+      <div class="topbar-actions">
+        <span id="userName"></span>
+        <button id="logoutButton" type="button">Sign out</button>
+      </div>
+    </header>
 
-        <div class="stat-grid">
-          <article class="stat-card">
-            <span class="stat-icon">↗</span>
-            <p>Assigned trips</p>
-            <strong id="statTrips">—</strong>
-            <small>Trip statistics from the operations database</small>
-          </article>
-          <article class="stat-card">
-            <span class="stat-icon">♙</span>
-            <p>Passengers today</p>
-            <strong id="statPassengers">—</strong>
-            <small>Passenger statistics from the database</small>
-          </article>
-          <article class="stat-card">
-            <span class="stat-icon">▣</span>
-            <p>Tickets checked in</p>
-            <strong id="statChecked">—</strong>
-            <small>Updates after secure verification</small>
-          </article>
-        </div>
-
-        <div class="section-heading">
-          <div>
-            <h3>Quick actions</h3>
-            <p>Get to the tools you use most.</p>
-          </div>
-        </div>
-
-        <div class="quick-grid">
-          <button class="quick-card" data-go="scanner">
-            <span class="quick-icon">▣</span>
-            <strong>Scan a ticket</strong>
-            <span>Verify QR ticket and check in</span>
-            <b>→</b>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <nav aria-label="Main navigation">
+          <button type="button" data-view="dashboardView">
+            Dashboard
           </button>
-          <button class="quick-card" data-go="trips">
-            <span class="quick-icon">↗</span>
-            <strong>View my trips</strong>
-            <span>Check departures and passengers</span>
-            <b>→</b>
+          <button type="button" data-view="tripsView">
+            Trips
           </button>
-          <button class="quick-card" data-go="chats">
-            <span class="quick-icon">✉</span>
-            <strong>Open team chats</strong>
-            <span>Talk to admins and coordinators</span>
-            <b>→</b>
+          <button type="button" data-view="scannerView">
+            QR Scanner
           </button>
-        </div>
+          <button type="button" data-view="chatsView">
+            Team Chats
+          </button>
+          <button type="button" data-view="teamView">
+            Team Management
+          </button>
+        </nav>
+      </aside>
 
-        <div class="notice">
-          <span>i</span>
-          <div>
-            <strong>ROGO RIDE operations</strong>
-            <p>Access is restricted to approved team members. Trip data, messaging, and ticket verification depend on their secure backend integration.</p>
-          </div>
-        </div>
-      </section>
+      <main id="mainContent">
+        <section id="dashboardView" class="view">
+          <h1>Dashboard</h1>
+          <p>Welcome to ROGO RIDE Operations.</p>
 
-      <section id="view-trips" class="view hidden">
-        <div class="section-heading">
-          <div>
-            <h3>My trips</h3>
-            <p>View departure schedules and trip information assigned to your account.</p>
-          </div>
-          <button class="secondary" id="refreshTrips" type="button">↻ Refresh</button>
-        </div>
+          <div id="dashboardMessage" role="status" aria-live="polite"></div>
+          <div id="dashboardStats"></div>
+          <div id="dashboardTrips"></div>
+        </section>
 
-        <div id="tripsMessage" class="notice">
-          <span>i</span>
-          <div>
-            <strong>Trips workspace</strong>
-            <p>Trip information will appear here when the database connection is enabled.</p>
-          </div>
-        </div>
-
-        <div id="tripsContainer" class="trip-list" aria-live="polite">
-          <div class="empty-state">
-            <div class="empty-icon">↗</div>
-            <h3>No trip data loaded</h3>
-            <p>Refresh the page after the trip database integration has been completed.</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="view-scanner" class="view hidden">
-        <div class="section-heading">
-          <div>
-            <h3>QR ticket scanner</h3>
-            <p>Scan and verify a passenger's ROGO RIDE ticket.</p>
-          </div>
-        </div>
-
-        <div class="scanner-layout">
-          <div class="scanner-card">
-            <div class="camera-frame">
-              <video id="cameraVideo" playsinline muted></video>
-              <div class="scan-corners">
-                <i></i><i></i><i></i><i></i>
-              </div>
-              <div id="cameraPlaceholder" class="camera-placeholder">
-                <span>▣</span>
-                <strong>Camera scanner</strong>
-                <small>Allow camera access to start scanning</small>
-              </div>
+        <section id="tripsView" class="view" hidden>
+          <div class="section-heading">
+            <div>
+              <h1>Trip Management</h1>
+              <p>Create and manage free ROGO RIDE trips.</p>
             </div>
 
-            <div class="scanner-actions">
-              <button id="startScan" class="primary" type="button">Start camera</button>
-              <button id="stopScan" class="secondary" type="button" disabled>Stop</button>
-            </div>
-            <p class="tiny muted">Camera scanning requires HTTPS and a supported browser. A scanned code must be validated by the secure server before check-in.</p>
+            <button id="refreshTrips" type="button">
+              Refresh trips
+            </button>
           </div>
 
-          <div class="panel verify-panel">
-            <span class="eyebrow">TICKET VERIFICATION</span>
-            <h3>Check a ticket</h3>
-            <label for="ticketCode">Ticket number or scanned code</label>
-            <input id="ticketCode" placeholder="e.g. RR00025" autocomplete="off">
-            <button id="verifyTicket" class="primary full" type="button">Verify ticket</button>
-            <div id="scanResult" class="result-box neutral" role="status">No ticket checked yet.</div>
-            <p class="tiny muted">Do not treat a ticket as valid until the server confirms it. Check-in must be recorded securely and only once.</p>
-          </div>
-        </div>
-      </section>
+          <div id="tripsMessage" role="status" aria-live="polite"></div>
 
-      <section id="view-chats" class="view hidden">
-        <div class="section-heading">
-          <div>
-            <h3>Team chats</h3>
-            <p>Private conversations inside the Coordinator App, separate from Telegram.</p>
-          </div>
-          <button id="newChatBtn" class="primary" type="button">+ New chat</button>
-        </div>
+          <div id="tripFormContainer"></div>
+          <div id="tripsContainer"></div>
+        </section>
 
-        <div class="chat-layout panel">
-          <div class="chat-list">
-            <div class="chat-search">
-              <input id="chatSearch" placeholder="Search conversations">
-            </div>
-            <div class="chat-list-empty">Your private team conversations will appear here when messaging is connected.</div>
-          </div>
+        <section id="scannerView" class="view" hidden>
+          <h1>Ticket Scanner</h1>
+          <p>Scan a passenger's QR ticket for check-in.</p>
 
-          <div class="chat-main">
-            <div class="chat-empty-icon">✉</div>
-            <h3>Your team, connected</h3>
-            <p>Choose a conversation to message an administrator or coordinator. Messages will be stored and delivered through the secure ROGO RIDE messaging service once connected.</p>
-            <button id="startConversation" class="secondary" type="button">Start a conversation</button>
-          </div>
-        </div>
-      </section>
+          <div id="scannerMessage" role="status" aria-live="polite"></div>
+          <div id="scannerContainer"></div>
 
-      <section id="view-team" class="view hidden">
-        <div class="section-heading">
-          <div>
-            <h3>Team access</h3>
-            <p>Administrator-only coordinator management.</p>
-          </div>
-          <button class="primary" id="inviteBtn" type="button">+ Add coordinator</button>
-        </div>
+          <button id="startScanner" type="button">
+            Start camera
+          </button>
 
-        <div class="notice">
-          <span>!</span>
-          <div>
-            <strong>Restricted administration</strong>
-            <p>Only server-verified administrators should approve accounts, assign trips, change roles, or revoke access.</p>
-          </div>
-        </div>
+          <button id="stopScanner" type="button" hidden>
+            Stop camera
+          </button>
 
-        <div class="empty-state">
-          <div class="empty-icon">♙</div>
-          <h3>Team directory not connected</h3>
-          <p>Approved coordinators and their permissions will be loaded from the secured backend.</p>
-        </div>
-      </section>
+          <div id="scannerResult"></div>
+        </section>
 
-      <footer>ROGO RIDE Coordinator • Private operations workspace</footer>
-    </main>
+        <section id="chatsView" class="view" hidden>
+          <h1>Team Chats</h1>
+          <p>Internal communication for authorized team members.</p>
 
-    <nav class="mobile-nav" id="mobileNav">
-      <button data-view="dashboard" class="active">▦<span>Home</span></button>
-      <button data-view="trips">↗<span>Trips</span></button>
-      <button data-view="scanner">▣<span>Scan</span></button>
-      <button data-view="chats">✉<span>Chats</span></button>
-    </nav>
+          <div id="chatMessage" role="status" aria-live="polite"></div>
+          <div id="chatContainer"></div>
+        </section>
+
+        <section id="teamView" class="view" hidden>
+          <h1>Team Management</h1>
+          <p>Manage authorized coordinators and administrators.</p>
+
+          <div id="teamMessage" role="status" aria-live="polite"></div>
+          <div id="teamContainer"></div>
+        </section>
+      </main>
+    </div>
   </div>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=3"></script>
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Load Supabase before the application JavaScript. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Cache-busting version for the application script. -->
+  <script src="app.js?v=4"></script>
 </body>
-  </html>
-  
+</html>
