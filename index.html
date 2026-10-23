@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="en">
 <head>
@@ -20,22 +19,12 @@
 
     <form id="loginForm" class="panel login-panel">
       <label for="account">Email address</label>
-      <input
-        id="account"
-        type="email"
-        autocomplete="username"
-        placeholder="Enter your registered email"
-        required
-      >
+      <input id="account" type="email" autocomplete="username"
+        placeholder="Enter your registered email" required>
 
       <label for="password">Password</label>
-      <input
-        id="password"
-        type="password"
-        autocomplete="current-password"
-        placeholder="Enter password"
-        required
-      >
+      <input id="password" type="password" autocomplete="current-password"
+        placeholder="Enter password" required>
 
       <button class="primary full" type="submit">Sign in securely</button>
       <p class="tiny muted">Sign in with your approved ROGO RIDE account.</p>
@@ -97,19 +86,19 @@
             <span class="stat-icon">↗</span>
             <p>Assigned trips</p>
             <strong id="statTrips">—</strong>
-            <small>Connected when API is configured</small>
+            <small>Trip statistics from the operations database</small>
           </article>
           <article class="stat-card">
             <span class="stat-icon">♙</span>
             <p>Passengers today</p>
             <strong id="statPassengers">—</strong>
-            <small>From the shared ROGO RIDE database</small>
+            <small>Passenger statistics from the database</small>
           </article>
           <article class="stat-card">
             <span class="stat-icon">▣</span>
             <p>Tickets checked in</p>
             <strong id="statChecked">—</strong>
-            <small>Updates after server verification</small>
+            <small>Updates after secure verification</small>
           </article>
         </div>
 
@@ -145,7 +134,7 @@
           <span>i</span>
           <div>
             <strong>ROGO RIDE operations</strong>
-            <p>Sign-in requires an approved account. Trip data, private messaging, and ticket verification will become available as their secure backend services are connected.</p>
+            <p>Access is restricted to approved team members. Trip data, messaging, and ticket verification depend on their secure backend integration.</p>
           </div>
         </div>
       </section>
@@ -154,14 +143,25 @@
         <div class="section-heading">
           <div>
             <h3>My trips</h3>
-            <p>Trips assigned to your account will appear here.</p>
+            <p>View departure schedules and trip information assigned to your account.</p>
           </div>
-          <button class="secondary" id="refreshTrips">↻ Refresh</button>
+          <button class="secondary" id="refreshTrips" type="button">↻ Refresh</button>
         </div>
-        <div class="empty-state">
-          <div class="empty-icon">↗</div>
-          <h3>No trip data connected yet</h3>
-          <p>Once the secure API is connected, your assigned trips, departure times, routes, capacity and passenger manifest will load here.</p>
+
+        <div id="tripsMessage" class="notice">
+          <span>i</span>
+          <div>
+            <strong>Trips workspace</strong>
+            <p>Trip information will appear here when the database connection is enabled.</p>
+          </div>
+        </div>
+
+        <div id="tripsContainer" class="trip-list" aria-live="polite">
+          <div class="empty-state">
+            <div class="empty-icon">↗</div>
+            <h3>No trip data loaded</h3>
+            <p>Refresh the page after the trip database integration has been completed.</p>
+          </div>
         </div>
       </section>
 
@@ -188,20 +188,20 @@
             </div>
 
             <div class="scanner-actions">
-              <button id="startScan" class="primary">Start camera</button>
-              <button id="stopScan" class="secondary" disabled>Stop</button>
+              <button id="startScan" class="primary" type="button">Start camera</button>
+              <button id="stopScan" class="secondary" type="button" disabled>Stop</button>
             </div>
-            <p class="tiny muted">Camera scanning requires HTTPS and a supported browser. Ticket validation must happen on the server.</p>
+            <p class="tiny muted">Camera scanning requires HTTPS and a supported browser. A scanned code must be validated by the secure server before check-in.</p>
           </div>
 
           <div class="panel verify-panel">
             <span class="eyebrow">TICKET VERIFICATION</span>
             <h3>Check a ticket</h3>
             <label for="ticketCode">Ticket number or scanned code</label>
-            <input id="ticketCode" placeholder="e.g. RR00025">
-            <button id="verifyTicket" class="primary full">Verify ticket</button>
-            <div id="scanResult" class="result-box neutral">No ticket checked yet.</div>
-            <p class="tiny muted">Ticket verification and check-in require the secure server service.</p>
+            <input id="ticketCode" placeholder="e.g. RR00025" autocomplete="off">
+            <button id="verifyTicket" class="primary full" type="button">Verify ticket</button>
+            <div id="scanResult" class="result-box neutral" role="status">No ticket checked yet.</div>
+            <p class="tiny muted">Do not treat a ticket as valid until the server confirms it. Check-in must be recorded securely and only once.</p>
           </div>
         </div>
       </section>
@@ -212,7 +212,7 @@
             <h3>Team chats</h3>
             <p>Private conversations inside the Coordinator App, separate from Telegram.</p>
           </div>
-          <button id="newChatBtn" class="primary">+ New chat</button>
+          <button id="newChatBtn" class="primary" type="button">+ New chat</button>
         </div>
 
         <div class="chat-layout panel">
@@ -226,8 +226,8 @@
           <div class="chat-main">
             <div class="chat-empty-icon">✉</div>
             <h3>Your team, connected</h3>
-            <p>Choose a conversation to message an administrator or coordinator. Messages will be stored and delivered through the ROGO RIDE messaging service once connected.</p>
-            <button id="startConversation" class="secondary">Start a conversation</button>
+            <p>Choose a conversation to message an administrator or coordinator. Messages will be stored and delivered through the secure ROGO RIDE messaging service once connected.</p>
+            <button id="startConversation" class="secondary" type="button">Start a conversation</button>
           </div>
         </div>
       </section>
@@ -238,7 +238,7 @@
             <h3>Team access</h3>
             <p>Administrator-only coordinator management.</p>
           </div>
-          <button class="primary" id="inviteBtn">+ Add coordinator</button>
+          <button class="primary" id="inviteBtn" type="button">+ Add coordinator</button>
         </div>
 
         <div class="notice">
@@ -267,8 +267,8 @@
     </nav>
   </div>
 
-  <div id="toast" class="toast" role="status"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="app.js"></script>
 </body>
-            </html>
-            
+  </html>
+  
