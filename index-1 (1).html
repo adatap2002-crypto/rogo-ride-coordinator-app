@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10251d">
+  <meta name="description" content="ROGO RIDE Coordinator and Administrator Portal">
+
+  <title>ROGO RIDE | Operations Portal</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <noscript>
+    <p>This application requires JavaScript. Please enable JavaScript and reload.</p>
+  </noscript>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-wrap">
+    <div class="brand-mark">R</div>
+    <p class="eyebrow">OPERATIONS PORTAL</p>
+    <h1>ROGO RIDE</h1>
+    <p class="muted">Coordinator &amp; administrator access</p>
+
+    <form id="loginForm" class="panel login-panel">
+      <div id="loginError" class="notice hidden" role="alert" aria-live="polite"></div>
+
+      <label for="account">Email address</label>
+      <input id="account" name="account" type="email" autocomplete="username"
+        placeholder="Enter your email address" required>
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password"
+        placeholder="Enter your password" required>
+
+      <button class="primary full" type="submit">Sign in securely</button>
+      <p class="tiny muted">Sign in with your approved ROGO RIDE account.</p>
+    </form>
+
+    <p class="tiny muted">Access is restricted to approved team members.</p>
+  </div>
+
+  <!-- APP -->
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="side-brand">
+        <div class="brand-mark small">R</div>
+        <div>
+          <strong>ROGO RIDE</strong>
+          <span>Operations Portal</span>
+        </div>
+      </div>
+
+      <nav aria-label="Main navigation">
+        <button class="nav-item active" type="button" data-view="dashboard"><span>Dashboard</span></button>
+        <button class="nav-item" type="button" data-view="trips"><span>Trips</span></button>
+        <button class="nav-item" type="button" data-view="scanner"><span>QR Scanner</span></button>
+        <button class="nav-item" type="button" data-view="chats"><span>Team Chats</span></button>
+        <button class="nav-item admin-only hidden" type="button" data-view="team"><span>Team Management</span></button>
+      </nav>
+
+      <div class="side-bottom">
+        <span class="online-dot"></span>
+        <span>Secure session</span>
+        <button id="logoutBtn" class="logout" type="button">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p id="pageEyebrow" class="eyebrow">OPERATIONS OVERVIEW</p>
+          <h2 id="pageTitle">Dashboard</h2>
+        </div>
+
+        <div id="profileMenu" class="profile">
+          <div id="profileAvatar" class="avatar">RR</div>
+          <div>
+            <strong id="profileName">Coordinator</strong>
+            <span id="profileRole">Coordinator</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard -->
+      <section id="view-dashboard" class="view">
+        <div class="welcome-card">
+          <div>
+            <p class="eyebrow">ROGO RIDE</p>
+            <h1>Welcome to ROGO RIDE Operations</h1>
+            <p>Manage free trips and passenger check-in from one place.</p>
+          </div>
+          <div class="welcome-symbol">RR</div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🚌</div>
+            <p>Trips</p>
+            <strong id="statTrips">0</strong>
+            <small>Trips visible to your account</small>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎫</div>
+            <p>Fare</p>
+            <strong>FREE</strong>
+            <small>All ROGO RIDE trips are free</small>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">✓</div>
+            <p>Check-in</p>
+            <strong>Pending</strong>
+            <small>Secure validation not yet connected</small>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div><h3>Quick actions</h3></div>
+        </div>
+        <div class="quick-grid">
+          <button class="quick-card" type="button" data-go="trips">
+            <span class="quick-icon">🚌</span>
+            <strong>Trips</strong>
+            <span>View and manage trips</span>
+            <b>→</b>
+          </button>
+          <button class="quick-card" type="button" data-go="scanner">
+            <span class="quick-icon">▣</span>
+            <strong>QR scanner</strong>
+            <span>Scan and check in passengers</span>
+            <b>→</b>
+          </button>
+          <button class="quick-card" type="button" data-go="chats">
+            <span class="quick-icon">💬</span>
+            <strong>Team chats</strong>
+            <span>Talk with your team</span>
+            <b>→</b>
+          </button>
+        </div>
+      </section>
+
+      <!-- Trips -->
+      <section id="view-trips" class="view hidden">
+        <div class="section-heading">
+          <div>
+            <h3>Trip management</h3>
+            <p>Create and manage free ROGO RIDE trips.</p>
+          </div>
+          <button id="refreshTrips" class="secondary" type="button">Refresh trips</button>
+        </div>
+
+        <div id="tripsMessage" class="hidden"></div>
+        <div id="tripsContainer"></div>
+      </section>
+
+      <!-- Scanner -->
+      <section id="view-scanner" class="view hidden">
+        <div class="scanner-layout">
+          <div class="scanner-card">
+            <div class="camera-frame">
+              <video id="scanVideo" class="hidden" playsinline muted></video>
+              <div id="scanPlaceholder" class="camera-placeholder">
+                <span>▣</span>
+                <strong>Camera is off</strong>
+                <small>Tap Start camera to scan a passenger QR ticket</small>
+              </div>
+              <div id="scanCorners" class="scan-corners"><i></i><i></i><i></i><i></i></div>
+            </div>
+
+            <div class="scanner-actions">
+              <button id="startScan" class="primary" type="button">Start camera</button>
+              <button id="stopScan" class="secondary hidden" type="button">Stop camera</button>
+            </div>
+            <p class="tiny muted">Camera access is requested only when you tap Start camera.</p>
+          </div>
+
+          <div class="panel verify-panel">
+            <p class="eyebrow">PASSENGER CHECK-IN</p>
+            <h3>Verify ticket</h3>
+            <label for="ticketCode">Ticket number</label>
+            <input id="ticketCode" placeholder="Enter or scan ticket number" autocomplete="off">
+            <button id="verifyTicket" class="primary full" type="button">Verify ticket</button>
+            <div id="scanResult" class="result-box neutral">No ticket checked yet.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Chats -->
+      <section id="view-chats" class="view hidden">
+        <div class="panel chat-layout">
+          <div class="chat-list">
+            <div class="chat-search"><input placeholder="Search conversations" disabled></div>
+            <div class="chat-list-empty">No conversations yet.</div>
+          </div>
+          <div class="chat-main">
+            <div class="chat-empty-icon">💬</div>
+            <h3>Team chats</h3>
+            <p>Internal messaging for authorized team members will appear here.</p>
+            <button id="startConversation" class="primary" type="button">Start conversation</button>
+          </div>
+        </div>
+        <button id="newChatBtn" class="hidden" type="button"></button>
+      </section>
+
+      <!-- Team -->
+      <section id="view-team" class="view hidden">
+        <div class="section-heading">
+          <div>
+            <h3>Team management</h3>
+            <p>Manage authorized coordinators and administrators.</p>
+          </div>
+          <button id="inviteBtn" class="primary" type="button">+ Add coordinator</button>
+        </div>
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <h3>Coordinator management</h3>
+          <p>Secure coordinator management is not connected yet.</p>
+        </div>
+      </section>
+
+      <footer>ROGO RIDE Operations Portal</footer>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <button type="button" data-go="dashboard">🏠<span>Home</span></button>
+      <button type="button" data-go="trips">🚌<span>Trips</span></button>
+      <button type="button" data-go="scanner">▣<span>Scan</span></button>
+      <button type="button" data-go="chats">💬<span>Chats</span></button>
+      <button type="button" class="admin-only hidden" data-go="team">👥<span>Team</span></button>
+    </nav>
+  </div>
+
+  <dialog id="ticketDialog" class="ticket-dialog">
+    <div id="ticketDialogBody"></div>
+    <div class="dialog-actions">
+      <button id="downloadQr" class="secondary" type="button">Download QR</button>
+      <button id="copyTicket" class="secondary" type="button">Copy number</button>
+      <button id="closeTicketDialog" class="primary" type="button">Close</button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script src="app.js?v=6"></script>
+</body>
+</html>
