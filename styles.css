@@ -416,3 +416,27 @@ dialog::backdrop{background:rgba(8,42,33,.62);backdrop-filter:blur(3px)}
   .toast{bottom:calc(84px + env(safe-area-inset-bottom))}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- Routes and flyers ---------- */
+.flyer-thumb{display:block;width:min(100%,300px);padding:0;border-radius:18px;overflow:hidden;background:#fff;text-align:center;box-shadow:0 18px 40px -18px rgba(0,0,0,.6);margin-top:6px}
+.flyer-thumb img{display:block;width:100%;height:auto}
+.flyer-thumb span{display:block;padding:9px 12px;font-size:13px;font-weight:700;color:var(--forest)}
+.flyer-dialog{border:0;border-radius:18px;padding:12px;max-width:min(94vw,560px);max-height:94vh;background:#fff;overflow:auto}
+.flyer-dialog::backdrop{background:rgba(6,30,22,.7)}
+.flyer-dialog img{display:block;width:100%;height:auto;border-radius:10px}
+.flyer-dialog button{display:block;margin:12px auto 2px}
+.chip-tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+.chip-tabs::-webkit-scrollbar{display:none}
+.chip-tab{flex:none;border-radius:999px;padding:9px 16px;font-weight:700;font-size:14px;background:#fff;border:1.5px solid var(--line);color:var(--forest)}
+.chip-tab.on{background:var(--forest);border-color:var(--forest);color:#fff}
+.linklike{background:none;border:0;padding:0;color:var(--leaf);font-weight:700;text-decoration:underline;font-size:inherit}
+.sub-h{font-family:var(--display);font-size:17px;margin:18px 0 10px}
+.route-card .route-names strong{font-size:18px}
+.deps{margin-top:14px;border-top:1px dashed #cbd9d1;display:grid}
+.dep-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.dep-row:last-child{border-bottom:0;padding-bottom:0}
+.dep-row b{font-size:14px;display:block}
+.dep-row small{color:var(--muted);font-size:12px}
+.dep-row small.low{color:#b4570b;font-weight:700}
+
+img.brand-mark{object-fit:cover;background:#fff;padding:0;border:2px solid #fff}
