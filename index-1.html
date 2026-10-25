@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d3b2e">
+  <meta name="description" content="ROGO RIDE: free rides for students, pregnant passengers and people with disabilities">
+
+  <title>ROGO RIDE</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="styles.css?v=12">
+</head>
+
+<body>
+  <noscript>
+    <p>This application requires JavaScript. Please enable JavaScript and reload.</p>
+  </noscript>
+
+  <!-- SIGN IN / CREATE ACCOUNT -->
+  <div id="loginScreen" class="login-wrap">
+    <section class="login-brand">
+      <div class="brand-row"><img class="brand-mark" src="icons/icon-192.png" alt="ROGO RIDE" width="46" height="46"><span class="brand-word">ROGO RIDE</span></div>
+      <h1>Free rides, for the people who need them most.</h1>
+      <p>Students, mothers-to-be and people with disabilities ride at no cost. Verify once, then book a seat in one tap.</p>
+      <button type="button" class="flyer-thumb" data-flyer="intro" aria-label="View the ROGO RIDE flyer">
+        <img src="img/rogo-ride-intro.jpg" alt="ROGO RIDE free mobility service flyer" width="716" height="716">
+        <span>Tap to view the full flyer</span>
+      </button>
+    </section>
+
+    <section class="login-panel panel">
+      <div class="auth-tabs" role="tablist">
+        <button type="button" class="auth-tab active" data-auth-tab="signin" role="tab">Sign in</button>
+        <button type="button" class="auth-tab" data-auth-tab="signup" role="tab">Create account</button>
+      </div>
+
+      <div id="loginError" class="notice hidden" role="alert" aria-live="polite"></div>
+
+      <form id="loginForm" class="auth-form">
+        <label for="account">Email address</label>
+        <input id="account" name="account" type="email" autocomplete="username" placeholder="you@example.com" required>
+
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="Your password" required>
+
+        <button class="primary full" type="submit">Sign in</button>
+        <button id="forgotPassword" class="link-btn" type="button">Forgot your password?</button>
+        <p class="tiny muted">Passengers, coordinators and administrators all sign in here.</p>
+      </form>
+
+      <form id="signupForm" class="auth-form hidden">
+        <label for="suName">Full name</label>
+        <input id="suName" type="text" autocomplete="name" required minlength="2" maxlength="120" placeholder="Your full name">
+
+        <label for="suEmail">Email address</label>
+        <input id="suEmail" type="email" autocomplete="email" required placeholder="you@example.com">
+
+        <label for="suPassword">Password (at least 8 characters)</label>
+        <input id="suPassword" type="password" autocomplete="new-password" required minlength="8" placeholder="Choose a password">
+
+        <button class="primary full" type="submit">Create passenger account</button>
+        <p class="tiny muted">We email you a link to confirm your address.</p>
+      </form>
+    </section>
+  </div>
+
+  <!-- PASSENGER AREA -->
+  <div id="passengerShell" class="passenger-shell hidden">
+    <header class="p-top">
+      <div class="brand-row"><img class="brand-mark sm" src="icons/icon-192.png" alt="ROGO RIDE" width="46" height="46"><span class="brand-word">ROGO RIDE</span></div>
+      <div class="p-top-actions">
+        <button id="pAvatarBtn" class="avatar-btn" type="button" aria-label="Open your profile"></button>
+        <button id="pLogout" class="icon-btn" type="button" aria-label="Sign out" title="Sign out" data-icon="logout"></button>
+      </div>
+    </header>
+
+    <main class="p-main">
+      <section id="pTrips">
+        <div id="pHero"></div>
+        <div class="section-title">
+          <h2>Open trips</h2>
+          <button id="pRefreshTrips" class="ghost sm" type="button" data-icon="refresh"><span>Refresh</span></button>
+        </div>
+        <div id="pTripsList"></div>
+      </section>
+
+      <section id="pTickets" class="hidden">
+        <div class="section-title"><h2>My tickets</h2>
+          <button id="pRefreshBookings" class="ghost sm" type="button" data-icon="refresh"><span>Refresh</span></button>
+        </div>
+        <div id="pBookingsList"></div>
+      </section>
+
+      <section id="pCommunity" class="hidden">
+        <div class="chat-card">
+          <div class="chat-card-head">
+            <div class="group-badge" data-icon="users"></div>
+            <div><strong>Rider community</strong><small>Students, coordinators and admins, together</small></div>
+          </div>
+          <div id="pcMessages" class="chat-messages" aria-live="polite"></div>
+          <form id="pcForm" class="chat-form">
+            <input id="pcInput" placeholder="Message the community" maxlength="1000" autocomplete="off" required>
+            <button class="send-btn" type="submit" aria-label="Send" data-icon="send"></button>
+          </form>
+        </div>
+      </section>
+
+      <section id="pReviews" class="hidden">
+        <div class="section-title"><h2>Rider reviews</h2></div>
+        <div id="prSummary"></div>
+        <div id="prCompose"></div>
+        <div id="prList"></div>
+      </section>
+    </main>
+
+    <nav class="p-tabbar" aria-label="Passenger navigation">
+      <button type="button" class="p-tab active" data-ptab="trips" data-icon="bus"><span>Trips</span></button>
+      <button type="button" class="p-tab" data-ptab="tickets" data-icon="ticket"><span>Tickets</span></button>
+      <button type="button" class="p-tab" data-ptab="community" data-icon="chat"><span>Community</span></button>
+      <button type="button" class="p-tab" data-ptab="reviews" data-icon="star"><span>Reviews</span></button>
+    </nav>
+  </div>
+
+  <!-- STAFF PORTAL -->
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="side-brand">
+        <img class="brand-mark sm" src="icons/icon-192.png" alt="ROGO RIDE" width="46" height="46">
+        <div><strong>ROGO RIDE</strong><span>Operations</span></div>
+      </div>
+
+      <nav aria-label="Main navigation">
+        <button class="nav-item active" type="button" data-view="dashboard" data-icon="grid"><span>Dashboard</span></button>
+        <button class="nav-item" type="button" data-view="trips" data-icon="bus"><span>Trips</span></button>
+        <button class="nav-item admin-only hidden" type="button" data-view="verifications" data-icon="shield"><span>Verifications</span><i id="navPending" class="count hidden"></i></button>
+        <button class="nav-item" type="button" data-view="scanner" data-icon="scan"><span>QR scanner</span></button>
+        <button class="nav-item" type="button" data-view="chats" data-icon="chat"><span>Chats</span></button>
+        <button class="nav-item" type="button" data-view="reviews" data-icon="star"><span>Reviews</span></button>
+        <button class="nav-item admin-only hidden" type="button" data-view="team" data-icon="users"><span>Team</span></button>
+      </nav>
+
+      <div class="side-bottom">
+        <span class="online-dot"></span>
+        <span>Secure session</span>
+        <button id="logoutBtn" class="logout" type="button">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p id="pageEyebrow" class="eyebrow">Operations overview</p>
+          <h2 id="pageTitle">Dashboard</h2>
+        </div>
+
+        <div class="topbar-right">
+          <div id="profileMenu" class="profile" role="button" tabindex="0" title="Profile and settings">
+            <div id="profileAvatar" class="av-slot"></div>
+            <div>
+              <strong id="profileName">Coordinator</strong>
+              <span id="profileRole">Coordinator</span>
+            </div>
+          </div>
+          <button id="topLogout" class="ghost" type="button" data-icon="logout"><span>Sign out</span></button>
+        </div>
+      </header>
+
+      <section id="view-dashboard" class="view">
+        <div class="welcome-card">
+          <div>
+            <p class="eyebrow">ROGO RIDE</p>
+            <h1>Welcome back</h1>
+            <p>Verify passengers, manage trips and check people in from one place.</p>
+          </div>
+          <div class="welcome-symbol" aria-hidden="true">RR</div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon" data-icon="bus"></div>
+            <p>Trips</p>
+            <strong id="statTrips">0</strong>
+            <small>Visible to your account</small>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" data-icon="ticket"></div>
+            <p>Fare</p>
+            <strong>Free</strong>
+            <small>Every ROGO RIDE trip</small>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" data-icon="shield"></div>
+            <p>Waiting for verification</p>
+            <strong id="statPending">–</strong>
+            <small>Passenger IDs to review</small>
+          </div>
+        </div>
+
+        <div class="section-title"><h2>Quick actions</h2></div>
+        <div class="quick-grid">
+          <button class="quick-card" type="button" data-go="trips">
+            <span class="quick-icon" data-icon="bus"></span>
+            <strong>Trips</strong>
+            <span>View and manage trips</span>
+          </button>
+          <button class="quick-card" type="button" data-go="scanner">
+            <span class="quick-icon" data-icon="scan"></span>
+            <strong>QR scanner</strong>
+            <span>Check passengers in</span>
+          </button>
+          <button class="quick-card" type="button" data-go="chats">
+            <span class="quick-icon" data-icon="chat"></span>
+            <strong>Chats</strong>
+            <span>Team and community</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="view-trips" class="view hidden">
+        <div class="section-heading">
+          <div>
+            <h3>Trip management</h3>
+            <p>Set daily departure times once. Trips run every day by themselves.</p>
+          </div>
+          <button id="refreshTrips" class="ghost" type="button" data-icon="refresh"><span>Refresh</span></button>
+        </div>
+        <div id="tripsMessage" class="hidden"></div>
+        <div id="tripsContainer"></div>
+      </section>
+
+      <section id="view-verifications" class="view hidden">
+        <div class="section-heading">
+          <div>
+            <h3>Passenger verification</h3>
+            <p>Check each ID once. Verified passengers book seats on their own and get tickets instantly.</p>
+          </div>
+          <div class="inline-form">
+            <select id="verifFilter" aria-label="Filter">
+              <option value="pending">Waiting</option>
+              <option value="verified">Verified</option>
+              <option value="rejected">Declined</option>
+              <option value="">All</option>
+            </select>
+            <button id="refreshVerifs" class="ghost" type="button" data-icon="refresh"><span>Refresh</span></button>
+          </div>
+        </div>
+        <div id="verifContainer"></div>
+      </section>
+
+      <section id="view-scanner" class="view hidden">
+        <div class="scanner-layout">
+          <div class="scanner-card">
+            <div class="camera-frame">
+              <video id="scanVideo" class="hidden" playsinline muted></video>
+              <div id="scanPlaceholder" class="camera-placeholder">
+                <span data-icon="scan"></span>
+                <strong>Camera is off</strong>
+                <small>Start the camera to scan a passenger's QR ticket</small>
+              </div>
+              <div id="scanCorners" class="scan-corners"><i></i><i></i><i></i><i></i></div>
+            </div>
+            <div class="scanner-actions">
+              <button id="startScan" class="primary" type="button" data-icon="camera"><span>Start camera</span></button>
+              <button id="stopScan" class="secondary hidden" type="button"><span>Stop camera</span></button>
+            </div>
+            <p class="tiny muted">The camera turns on only when you tap Start camera.</p>
+          </div>
+
+          <div class="panel verify-panel">
+            <h3>Check in a passenger</h3>
+            <label for="ticketCode">Ticket number</label>
+            <input id="ticketCode" placeholder="Type or scan the ticket number" autocomplete="off">
+            <button id="verifyTicket" class="primary full" type="button" data-icon="check"><span>Check in</span></button>
+            <div id="scanResult" class="result-box neutral">No ticket checked yet.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-chats" class="view hidden">
+        <div class="seg" role="tablist">
+          <button type="button" class="seg-btn active" data-chattab="team">Team</button>
+          <button type="button" class="seg-btn" data-chattab="community">Community</button>
+        </div>
+
+        <div id="teamChatPane" class="chat-layout panel">
+          <div class="chat-list"><div id="chatList"></div></div>
+          <div class="chat-pane">
+            <div id="chatHeader" class="chat-header">Team channel</div>
+            <div id="chatMessages" class="chat-messages" aria-live="polite"></div>
+            <form id="chatForm" class="chat-form">
+              <input id="chatInput" placeholder="Write a message" maxlength="2000" autocomplete="off" required>
+              <button class="send-btn" type="submit" aria-label="Send" data-icon="send"></button>
+            </form>
+          </div>
+        </div>
+
+        <div id="communityPane" class="chat-card hidden">
+          <div class="chat-card-head">
+            <div class="group-badge" data-icon="users"></div>
+            <div><strong>Rider community</strong><small>Open to passengers, coordinators and admins</small></div>
+          </div>
+          <div id="scMessages" class="chat-messages" aria-live="polite"></div>
+          <form id="scForm" class="chat-form">
+            <input id="scInput" placeholder="Message the community" maxlength="1000" autocomplete="off" required>
+            <button class="send-btn" type="submit" aria-label="Send" data-icon="send"></button>
+          </form>
+        </div>
+      </section>
+
+      <section id="view-reviews" class="view hidden">
+        <div id="srSummary"></div>
+        <div id="srList"></div>
+      </section>
+
+      <section id="view-team" class="view hidden">
+        <div class="section-heading">
+          <div>
+            <h3>Team management</h3>
+            <p>Add coordinators and manage who has access.</p>
+          </div>
+          <button id="inviteBtn" class="primary" type="button" data-icon="plus"><span>Add coordinator</span></button>
+        </div>
+        <div id="teamContainer"></div>
+      </section>
+    </main>
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+      <button type="button" data-go="dashboard" data-icon="grid"><span>Home</span></button>
+      <button type="button" data-go="trips" data-icon="bus"><span>Trips</span></button>
+      <button type="button" class="admin-only hidden" data-go="verifications" data-icon="shield"><span>Verify</span></button>
+      <button type="button" data-go="scanner" data-icon="scan"><span>Scan</span></button>
+      <button type="button" data-go="chats" data-icon="chat"><span>Chats</span></button>
+      <button type="button" data-go="reviews" data-icon="star"><span>Reviews</span></button>
+      <button type="button" class="admin-only hidden" data-go="team" data-icon="users"><span>Team</span></button>
+    </nav>
+  </div>
+
+  <!-- VERIFY ACCOUNT (passengers, once) -->
+  <dialog id="verifyDialog" class="form-dialog">
+    <form id="vfForm">
+      <h3>Verify your account</h3>
+      <p class="muted tiny">Do this once. After an administrator approves your document you can book any open trip without verifying again.</p>
+
+      <label for="vfCategory">I am a</label>
+      <select id="vfCategory" required>
+        <option value="">Choose one</option>
+        <option value="student">Student</option>
+        <option value="pregnant">Pregnant passenger</option>
+        <option value="disability">Person with a disability</option>
+      </select>
+
+      <label for="vfName">Full name (as on your document)</label>
+      <input id="vfName" required minlength="2" maxlength="120" autocomplete="name">
+
+      <label for="vfPhone">Phone number</label>
+      <input id="vfPhone" type="tel" required maxlength="30" autocomplete="tel" placeholder="08012345678">
+
+      <div id="vfInstitutionWrap" class="hidden">
+        <label for="vfInstitution">School or institution</label>
+        <input id="vfInstitution" maxlength="160" placeholder="e.g. ATAP Bauchi">
+      </div>
+
+      <label for="vfDocument" id="vfDocLabel">Your document</label>
+      <label class="file-drop" for="vfDocument">
+        <span data-icon="upload"></span>
+        <strong id="vfFileName">Choose a photo or PDF</strong>
+        <small>JPG, PNG or PDF, up to 5 MB</small>
+      </label>
+      <input id="vfDocument" class="visually-hidden" type="file" accept="image/jpeg,image/png,application/pdf" required>
+      <p id="vfHelp" class="tiny muted">Only you and ROGO RIDE administrators can see your document.</p>
+
+      <div class="dialog-actions">
+        <button id="vfSubmit" class="primary" type="submit">Submit for review</button>
+        <button id="vfCancel" class="secondary" type="button">Not now</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- CONFIRM BOOKING -->
+  <dialog id="flyerDialog" class="flyer-dialog">
+    <img id="flyerImg" alt="">
+    <button id="flyerClose" class="primary sm" type="button">Close</button>
+  </dialog>
+
+  <dialog id="confirmDialog" class="form-dialog">
+    <h3 id="cbTitle">Book this trip</h3>
+    <p id="cbWhen" class="muted"></p>
+    <p class="tiny muted">The ride is free. Your ticket appears right after you confirm.</p>
+    <div class="dialog-actions">
+      <button id="cbSubmit" class="sun" type="button">Confirm booking</button>
+      <button id="cbCancel" class="secondary" type="button">Cancel</button>
+    </div>
+  </dialog>
+
+  <!-- PROFILE AND SETTINGS -->
+  <dialog id="profileDialog" class="form-dialog">
+    <div class="pf-head">
+      <div id="pfAvatar" class="av-slot big"></div>
+      <div>
+        <h3 id="pfName">Account</h3>
+        <p class="muted tiny" id="pfMeta"></p>
+      </div>
+    </div>
+
+    <div class="photo-actions">
+      <button id="pfPhotoBtn" class="secondary sm" type="button" data-icon="camera"><span>Change photo</span></button>
+      <button id="pfRemovePhoto" class="ghost sm" type="button"><span>Remove</span></button>
+      <input id="pfPhoto" class="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp">
+    </div>
+
+    <form id="profileForm">
+      <label for="pfNameInput">Display name</label>
+      <input id="pfNameInput" required minlength="2" maxlength="80" autocomplete="name">
+      <button class="secondary full" type="submit">Save name</button>
+    </form>
+
+    <form id="passwordForm">
+      <label for="pfNew">New password</label>
+      <input id="pfNew" type="password" minlength="8" autocomplete="new-password" required placeholder="At least 8 characters">
+      <label for="pfNew2">Repeat new password</label>
+      <input id="pfNew2" type="password" minlength="8" autocomplete="new-password" required>
+      <button class="secondary full" type="submit">Change password</button>
+    </form>
+
+    <div class="dialog-actions split">
+      <button id="pfSignOut" class="primary" type="button" data-icon="logout"><span>Sign out</span></button>
+      <button id="pfClose" class="secondary" type="button">Close</button>
+    </div>
+  </dialog>
+
+  <!-- TICKET -->
+  <dialog id="ticketDialog" class="ticket-dialog">
+    <div id="ticketDialogBody"></div>
+    <div class="dialog-actions">
+      <button id="downloadQr" class="secondary sm" type="button" data-icon="download"><span>Save</span></button>
+      <button id="printTicket" class="secondary sm" type="button" data-icon="printer"><span>Print</span></button>
+      <button id="copyTicket" class="secondary sm" type="button"><span>Copy number</span></button>
+      <button id="closeTicketDialog" class="primary sm" type="button"><span>Done</span></button>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+  <script src="app.js?v=12"></script>
+</body>
+</html>
